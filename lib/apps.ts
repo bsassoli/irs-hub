@@ -14,6 +14,13 @@ export const apps: App[] = [
     icon: '🎲',
     category: 'Probabilità'
   },
+  {
+    id: 'bayes-moneta',
+    title: 'Teorema di Bayes: La Moneta Misteriosa',
+    description: 'Un\'introduzione intuitiva al ragionamento bayesiano attraverso un esempio interattivo',
+    icon: '🪙',
+    category: 'Probabilità'
+  },
   // We'll add more apps later
 ];
 
