@@ -2,6 +2,7 @@ import { apps } from "@/lib/apps"
 import { notFound } from "next/navigation"
 import BettingCalculator from "@/components/apps/scommesse-eque-probabilita"
 import BayesCoinDemo from "@/components/apps/bayes-moneta"
+import StimaProbabilitaSoggettiva from "@/components/apps/stima-probabilita-soggettiva"
 import { ChevronRight, LayoutGrid } from "lucide-react"
 import Link from "next/link"
 
@@ -17,6 +18,7 @@ export default async function AppPage({ params }: { params: Promise<{ slug: stri
     const components: Record<string, React.ComponentType> = {
         'scommesse-eque-probabilita': BettingCalculator,
         'bayes-moneta': BayesCoinDemo,
+        'stima-probabilita-soggettiva': StimaProbabilitaSoggettiva,
     }
 
     const Component = components[app.id]

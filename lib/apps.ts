@@ -21,6 +21,13 @@ export const apps: App[] = [
     icon: '🪙',
     category: 'Probabilità'
   },
+  {
+    id: 'stima-probabilita-soggettiva',
+    title: 'Stimatore Probabilità Soggettiva',
+    description: 'Stima la probabilità soggettiva attraverso assicurazione, prezzo di vendita e scommesse - Caso Roberto',
+    icon: '🏠',
+    category: 'Probabilità'
+  },
   // We'll add more apps later
 ];
 

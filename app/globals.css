@@ -121,3 +121,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Prevent text selection during sidebar resize */
+body.resizing {
+  user-select: none;
+  cursor: col-resize !important;
+}
+body.resizing * {
+  cursor: col-resize !important;
+}

@@ -31,6 +31,8 @@ const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+const SIDEBAR_WIDTH_MIN = 240
+const SIDEBAR_WIDTH_MAX = 480
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed"
@@ -40,6 +42,8 @@ type SidebarContextProps = {
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
   toggleSidebar: () => void
+  width: number
+  setWidth: (width: number) => void
 }
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null)
@@ -68,6 +72,7 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
+  const [width, setWidth] = React.useState(288) // Default 18rem = 288px
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -122,8 +127,10 @@ function SidebarProvider({
       openMobile,
       setOpenMobile,
       toggleSidebar,
+      width,
+      setWidth,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, width, setWidth]
   )
 
   return (
@@ -133,7 +140,7 @@ function SidebarProvider({
           data-slot="sidebar-wrapper"
           style={
             {
-              "--sidebar-width": SIDEBAR_WIDTH,
+              "--sidebar-width": `${width}px`,
               "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
               ...style,
             } as React.CSSProperties
@@ -280,23 +287,52 @@ function SidebarTrigger({
 }
 
 function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
-  const { toggleSidebar } = useSidebar()
+  const { width, setWidth } = useSidebar()
+  const [isResizing, setIsResizing] = React.useState(false)
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsResizing(true)
+    document.body.classList.add('resizing')
+  }
+
+  React.useEffect(() => {
+    if (!isResizing) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = e.clientX
+      if (newWidth >= SIDEBAR_WIDTH_MIN && newWidth <= SIDEBAR_WIDTH_MAX) {
+        setWidth(newWidth)
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+      document.body.classList.remove('resizing')
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.classList.remove('resizing')
+    }
+  }, [isResizing, setWidth])
 
   return (
     <button
       data-sidebar="rail"
       data-slot="sidebar-rail"
-      aria-label="Toggle Sidebar"
+      aria-label="Resize Sidebar"
       tabIndex={-1}
-      onClick={toggleSidebar}
-      title="Toggle Sidebar"
+      onMouseDown={handleMouseDown}
+      title="Drag to resize"
       className={cn(
-        "hover:after:bg-sidebar-border absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] sm:flex",
-        "in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize",
-        "[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize",
-        "hover:group-data-[collapsible=offcanvas]:bg-sidebar group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full",
-        "[[data-side=left][data-collapsible=offcanvas]_&]:-right-2",
-        "[[data-side=right][data-collapsible=offcanvas]_&]:-left-2",
+        "hover:after:bg-sidebar-border absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-none ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] sm:flex cursor-col-resize",
+        "hover:after:bg-blue-500 active:after:bg-blue-600",
+        isResizing && "after:bg-blue-600",
         className
       )}
       {...props}

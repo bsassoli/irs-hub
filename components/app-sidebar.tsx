@@ -13,13 +13,14 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarHeader,
+    SidebarRail,
 } from "@/components/ui/sidebar"
 
 export function AppSidebar() {
     const pathname = usePathname()
 
     return (
-        <Sidebar className="w-72 border-r border-[#CCCCCC] bg-[#FAFAFA]">
+        <Sidebar collapsible="icon" className="border-r border-[#CCCCCC] bg-[#FAFAFA]">
             <SidebarHeader className="border-b border-[#CCCCCC] px-6 py-5">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded bg-[#003366]">
@@ -61,6 +62,7 @@ export function AppSidebar() {
                     </SidebarGroup>
                 ))}
             </SidebarContent>
+            <SidebarRail />
         </Sidebar>
     )
 }

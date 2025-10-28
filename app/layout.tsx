@@ -27,10 +27,10 @@ export default function RootLayout({
   return (
     <html lang="it">
       <body className={`${nunitoSans.variable} ${garamond.variable} font-sans`}>
-        <SidebarProvider>
+        <SidebarProvider defaultOpen={true}>
           <AppSidebar />
           <SidebarInset>
-            <header className="sticky top-0 flex h-14 items-center gap-4 border-b border-[#CCCCCC] bg-white px-6 z-10">
+            <header className="sticky top-0 flex shrink-0 h-14 items-center gap-4 border-b border-[#CCCCCC] bg-white px-6">
               <SidebarTrigger className="-ml-1" />
             </header>
             <main className="flex-1 p-8 max-w-7xl">
