@@ -28,6 +28,20 @@ export const apps: App[] = [
     icon: '🏠',
     category: 'Probabilità'
   },
+  {
+    id: 'intervalli-confidenza',
+    title: 'Intervalli di Confidenza Explorer',
+    description: 'Comprendi il vero significato degli intervalli di confidenza attraverso simulazioni interattive',
+    icon: '📊',
+    category: 'Statistica Inferenziale'
+  },
+  {
+    id: 'teorema-limite-centrale',
+    title: 'Teorema del Limite Centrale in Azione',
+    description: 'Osserva come le medie campionarie convergono alla normalità, qualunque sia la popolazione di partenza',
+    icon: '📈',
+    category: 'Statistica Inferenziale'
+  },
   // We'll add more apps later
 ];
 
