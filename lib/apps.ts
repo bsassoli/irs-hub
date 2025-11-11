@@ -56,6 +56,13 @@ export const apps: App[] = [
     icon: '⚗️',
     category: 'Statistica Inferenziale'
   },
+  {
+    id: 'genetica-intervalli-confidenza',
+    title: 'Genetica e Intervalli di Confidenza',
+    description: 'Stima la frequenza di un allele in una popolazione e costruisci intervalli di confidenza basati su campioni finiti',
+    icon: '🧬',
+    category: 'Statistica Inferenziale'
+  },
   // We'll add more apps later
 ];
 
