@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Table,
   TableBody,
@@ -15,7 +16,356 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { BlockMath, InlineMath } from 'react-katex'
 import { calculateProbabilityHistory, calculateNextRavenBlackProb } from '@/lib/bayes-calculations'
 
-export default function BayesCorvi() {
+// ========================================
+// Prior Comparison Component
+// ========================================
+
+type Hypothesis = {
+  id: string;
+  label: string;
+  pBlack: number; // Probabilità di vedere un corvo nero se l'ipotesi è vera
+};
+
+const HYPOTHESES: Hypothesis[] = [
+  { id: "h1", label: "h₁: quasi tutti neri (p=0.99)", pBlack: 0.99 },
+  { id: "h2", label: "h₂: molti neri (p=0.7)", pBlack: 0.7 },
+  { id: "h3", label: "h₃: metà neri (p=0.5)", pBlack: 0.5 },
+];
+
+type Observation = "B" | "N"; // B = corvo nero, N = non nero
+
+function normalize(arr: number[]): number[] {
+  const sum = arr.reduce((a, b) => a + b, 0);
+  if (sum === 0) return arr.map(() => 1 / arr.length);
+  return arr.map((v) => v / sum);
+}
+
+function computePosteriorPath(
+  rawPrior: number[],
+  observations: Observation[]
+): number[][] {
+  const prior = normalize(rawPrior);
+  const history: number[][] = [prior];
+  let current = prior;
+
+  observations.forEach((obs) => {
+    const unnormalized = current.map((pi, i) => {
+      const theta = HYPOTHESES[i].pBlack;
+      const like = obs === "B" ? theta : 1 - theta;
+      return pi * like;
+    });
+    const norm = normalize(unnormalized);
+    current = norm;
+    history.push(current);
+  });
+
+  return history;
+}
+
+const lineColors = ["#1f77b4", "#ff7f0e", "#2ca02c"]; // blu, arancio, verde
+
+interface PosteriorChartProps {
+  title: string;
+  history: number[][];
+}
+
+const PosteriorChart: React.FC<PosteriorChartProps> = ({ title, history }) => {
+  const width = 400;
+  const height = 200;
+  const padding = 30;
+
+  const maxT = Math.max(history.length - 1, 1);
+
+  const xScale = (t: number) =>
+    padding + (t / maxT) * (width - 2 * padding);
+  const yScale = (p: number) =>
+    height - padding - p * (height - 2 * padding);
+
+  return (
+    <div className="border rounded-xl p-4 shadow-sm bg-white">
+      <h3 className="font-semibold mb-2">{title}</h3>
+      <svg width={width} height={height}>
+        {/* assi */}
+        <line
+          x1={padding}
+          y1={height - padding}
+          x2={width - padding}
+          y2={height - padding}
+          stroke="#ccc"
+        />
+        <line
+          x1={padding}
+          y1={padding}
+          x2={padding}
+          y2={height - padding}
+          stroke="#ccc"
+        />
+
+        {/* tacche y (0, 0.5, 1) */}
+        {[0, 0.5, 1].map((p) => (
+          <g key={p}>
+            <line
+              x1={padding - 4}
+              y1={yScale(p)}
+              x2={padding}
+              y2={yScale(p)}
+              stroke="#999"
+            />
+            <text
+              x={padding - 8}
+              y={yScale(p) + 4}
+              fontSize={10}
+              textAnchor="end"
+              fill="#555"
+            >
+              {p.toFixed(1)}
+            </text>
+          </g>
+        ))}
+
+        {/* linee per ogni ipotesi */}
+        {HYPOTHESES.map((h, i) => (
+          <polyline
+            key={h.id}
+            fill="none"
+            stroke={lineColors[i]}
+            strokeWidth={2}
+            points={history
+              .map((step, t) => {
+                const x = xScale(t);
+                const y = yScale(step[i]);
+                return `${x},${y}`;
+              })
+              .join(" ")}
+          />
+        ))}
+
+        {/* etichette ipotesi come legenda */}
+        {HYPOTHESES.map((h, i) => (
+          <g key={h.id} transform={`translate(${padding + i * 120}, 15)`}>
+            <rect width={10} height={10} fill={lineColors[i]} />
+            <text x={16} y={10} fontSize={11} fill="#333">
+              {h.id}
+            </text>
+          </g>
+        ))}
+      </svg>
+      <p className="text-xs text-gray-600 mt-1">
+        Asse X: numero di osservazioni • Asse Y: probabilità posterior per ogni
+        ipotesi.
+      </p>
+    </div>
+  );
+};
+
+const SliderRow: React.FC<{
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}> = ({ label, value, onChange }) => (
+  <div className="flex items-center gap-2 mb-2">
+    <span className="w-8 text-sm">{label}</span>
+    <input
+      type="range"
+      min={0}
+      max={100}
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      className="flex-1"
+    />
+    <span className="w-10 text-right text-xs">{value}</span>
+  </div>
+);
+
+const BayesPriorDemo: React.FC = () => {
+  const [obs, setObs] = useState<Observation[]>([]);
+
+  // prior grezzi in "punti" 0-100 (li normalizziamo noi)
+  const [priorA, setPriorA] = useState<number[]>([33, 33, 34]);
+  const [priorB, setPriorB] = useState<number[]>([70, 20, 10]);
+
+  const normalizedA = useMemo(() => normalize(priorA), [priorA]);
+  const normalizedB = useMemo(() => normalize(priorB), [priorB]);
+
+  const historyA = useMemo(
+    () => computePosteriorPath(priorA, obs),
+    [priorA, obs]
+  );
+  const historyB = useMemo(
+    () => computePosteriorPath(priorB, obs),
+    [priorB, obs]
+  );
+
+  const countBlack = obs.filter((o) => o === "B").length;
+  const countNonBlack = obs.filter((o) => o === "N").length;
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold font-serif">
+          Quanto contano i prior?
+        </h1>
+        <p className="text-sm text-gray-700 mt-2">
+          Qui puoi confrontare due scenari con <strong>prior diversi</strong> ma{" "}
+          <strong>stessa sequenza di osservazioni</strong>. All&apos;inizio le
+          posteriori possono divergere parecchio, ma man mano che aumentano i
+          dati tendono a convergere verso le ipotesi che spiegano meglio le
+          osservazioni.
+        </p>
+      </div>
+
+      {/* Controlli osservazioni */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-serif">Osservazioni</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setObs((prev) => [...prev, "B"])}
+              className="px-3 py-1 text-sm rounded-lg bg-black text-white"
+            >
+              Aggiungi corvo nero
+            </button>
+            <button
+              onClick={() => setObs((prev) => [...prev, "N"])}
+              className="px-3 py-1 text-sm rounded-lg bg-gray-200"
+            >
+              Aggiungi corvo non nero
+            </button>
+            <button
+              onClick={() => setObs([])}
+              className="px-3 py-1 text-sm rounded-lg bg-red-100 text-red-700"
+            >
+              Reset osservazioni
+            </button>
+          </div>
+          <p className="text-xs text-gray-700">
+            Totale osservazioni: <strong>{obs.length}</strong> (neri:{" "}
+            <strong>{countBlack}</strong>, non neri:{" "}
+            <strong>{countNonBlack}</strong>)
+          </p>
+          <div className="flex flex-wrap gap-1 text-xs">
+            {obs.map((o, i) => (
+              <span
+                key={i}
+                className={
+                  "px-1.5 py-0.5 rounded-md border " +
+                  (o === "B"
+                    ? "bg-black text-white border-black"
+                    : "bg-gray-100 text-gray-700")
+                }
+              >
+                {o === "B" ? "nero" : "non nero"}
+              </span>
+            ))}
+            {obs.length === 0 && (
+              <span className="text-gray-500 text-xs">
+                Nessuna osservazione ancora.
+              </span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Priors */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-serif">Scenario A – Prior</CardTitle>
+            <CardDescription>
+              Usa gli slider (0–100). Verranno normalizzati per sommare a 1.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {HYPOTHESES.map((h, i) => (
+              <SliderRow
+                key={h.id}
+                label={h.id}
+                value={priorA[i]}
+                onChange={(v) =>
+                  setPriorA((prev) =>
+                    prev.map((x, j) => (j === i ? v : x))
+                  )
+                }
+              />
+            ))}
+            <p className="text-xs text-gray-600 mt-2">
+              Prior normalizzati:{" "}
+              {normalizedA.map((p, i) => (
+                <span key={i} className="mr-2">
+                  {HYPOTHESES[i].id} = {p.toFixed(2)}
+                </span>
+              ))}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-serif">Scenario B – Prior</CardTitle>
+            <CardDescription>
+              Qui puoi scegliere priors molto diversi per confrontare gli effetti.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {HYPOTHESES.map((h, i) => (
+              <SliderRow
+                key={h.id}
+                label={h.id}
+                value={priorB[i]}
+                onChange={(v) =>
+                  setPriorB((prev) =>
+                    prev.map((x, j) => (j === i ? v : x))
+                  )
+                }
+              />
+            ))}
+            <p className="text-xs text-gray-600 mt-2">
+              Prior normalizzati:{" "}
+              {normalizedB.map((p, i) => (
+                <span key={i} className="mr-2">
+                  {HYPOTHESES[i].id} = {p.toFixed(2)}
+                </span>
+              ))}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Grafici posteriori */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <PosteriorChart
+          title="Scenario A – Posteriori nel tempo"
+          history={historyA}
+        />
+        <PosteriorChart
+          title="Scenario B – Posteriori nel tempo"
+          history={historyB}
+        />
+      </div>
+
+      <Card>
+        <CardContent className="pt-6">
+          <p className="text-xs text-gray-700">
+            Osserva che, con poche osservazioni, gli scenari A e B possono dare
+            posteriori molto diverse, perché i prior pesano. Ma se aggiungi molti
+            corvi (soprattutto se la sequenza favorisce chiaramente un&apos;ipotesi),
+            le due figure tendono a raccontare la stessa storia: i{" "}
+            <em>dati</em> vincono sul <em>prior</em>, finché quest&apos;ultimo non è
+            dogmatico.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// ========================================
+// Main Component with Tabs
+// ========================================
+
+function BayesTheoryTab() {
   const [numObservations, setNumObservations] = useState(4)
 
   // Calculate probability history
@@ -449,5 +799,22 @@ export default function BayesCorvi() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function BayesCorvi() {
+  return (
+    <Tabs defaultValue="theory" className="w-full">
+      <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+        <TabsTrigger value="theory">Teoria di Bayes</TabsTrigger>
+        <TabsTrigger value="prior">Confronto Prior</TabsTrigger>
+      </TabsList>
+      <TabsContent value="theory">
+        <BayesTheoryTab />
+      </TabsContent>
+      <TabsContent value="prior">
+        <BayesPriorDemo />
+      </TabsContent>
+    </Tabs>
   )
 }
