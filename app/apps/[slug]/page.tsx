@@ -2,6 +2,7 @@ import { apps } from "@/lib/apps"
 import { notFound } from "next/navigation"
 import BettingCalculator from "@/components/apps/scommesse-eque-probabilita"
 import BayesCoinDemo from "@/components/apps/bayes-moneta"
+import BayesCorvi from "@/components/apps/bayes-corvi"
 import StimaProbabilitaSoggettiva from "@/components/apps/stima-probabilita-soggettiva"
 import IntervalliConfidenza from "@/components/apps/intervalli-confidenza"
 import TeoremLimiteCentrale from "@/components/apps/teorema-limite-centrale"
@@ -20,6 +21,7 @@ export default async function AppPage({ params }: { params: Promise<{ slug: stri
     const components: Record<string, React.ComponentType> = {
         'scommesse-eque-probabilita': BettingCalculator,
         'bayes-moneta': BayesCoinDemo,
+        'bayes-corvi': BayesCorvi,
         'stima-probabilita-soggettiva': StimaProbabilitaSoggettiva,
         'intervalli-confidenza': IntervalliConfidenza,
         'teorema-limite-centrale': TeoremLimiteCentrale,

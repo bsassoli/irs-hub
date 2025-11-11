@@ -22,6 +22,13 @@ export const apps: App[] = [
     category: 'Probabilità'
   },
   {
+    id: 'bayes-corvi',
+    title: 'Bayes e Corvi',
+    description: 'Esplora il teorema di Bayes attraverso l\'esempio dei corvi neri e l\'aggiornamento bayesiano delle credenze',
+    icon: '🐦‍⬛',
+    category: 'Probabilità'
+  },
+  {
     id: 'stima-probabilita-soggettiva',
     title: 'Stimatore Probabilità Soggettiva',
     description: 'Stima la probabilità soggettiva attraverso assicurazione, prezzo di vendita e scommesse - Caso Roberto',
