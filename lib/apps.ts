@@ -42,6 +42,13 @@ export const apps: App[] = [
     icon: '📈',
     category: 'Statistica Inferenziale'
   },
+  {
+    id: 'gas-ideale-ic',
+    title: 'Gas Ideale e Intervalli di Confidenza',
+    description: 'Esperimento interattivo su misure di pressione, rumore del sensore e costruzione di intervalli di confidenza',
+    icon: '⚗️',
+    category: 'Statistica Inferenziale'
+  },
   // We'll add more apps later
 ];
 

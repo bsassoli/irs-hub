@@ -5,6 +5,7 @@ import BayesCoinDemo from "@/components/apps/bayes-moneta"
 import StimaProbabilitaSoggettiva from "@/components/apps/stima-probabilita-soggettiva"
 import IntervalliConfidenza from "@/components/apps/intervalli-confidenza"
 import TeoremLimiteCentrale from "@/components/apps/teorema-limite-centrale"
+import GasIdealeIC from "@/components/apps/gas-ideale-ic"
 import { ChevronRight, LayoutGrid } from "lucide-react"
 import Link from "next/link"
 
@@ -23,6 +24,7 @@ export default async function AppPage({ params }: { params: Promise<{ slug: stri
         'stima-probabilita-soggettiva': StimaProbabilitaSoggettiva,
         'intervalli-confidenza': IntervalliConfidenza,
         'teorema-limite-centrale': TeoremLimiteCentrale,
+        'gas-ideale-ic': GasIdealeIC,
     }
 
     const Component = components[app.id]
