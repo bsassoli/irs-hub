@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { EB_Garamond, Nunito_Sans } from "next/font/google"
 import "./globals.css"
+import "katex/dist/katex.min.css"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 
