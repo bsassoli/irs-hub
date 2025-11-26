@@ -8,6 +8,7 @@ import IntervalliConfidenza from "@/components/apps/intervalli-confidenza"
 import TeoremLimiteCentrale from "@/components/apps/teorema-limite-centrale"
 import GasIdealeIC from "@/components/apps/gas-ideale-ic"
 import GeneticaIntervalliConfidenza from "@/components/apps/genetica-intervalli-confidenza"
+import CausalNetworkSmoking from "@/components/apps/reti-causali-fumo"
 import { ChevronRight, LayoutGrid } from "lucide-react"
 import Link from "next/link"
 
@@ -29,6 +30,7 @@ export default async function AppPage({ params }: { params: Promise<{ slug: stri
         'teorema-limite-centrale': TeoremLimiteCentrale,
         'gas-ideale-ic': GasIdealeIC,
         'genetica-intervalli-confidenza': GeneticaIntervalliConfidenza,
+        'reti-causali-fumo': CausalNetworkSmoking,
     }
 
     const Component = components[app.id]

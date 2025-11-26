@@ -63,6 +63,13 @@ export const apps: App[] = [
     icon: '🧬',
     category: 'Statistica Inferenziale'
   },
+  {
+    id: 'reti-causali-fumo',
+    title: 'Reti Causali: Fumo e Confondenti',
+    description: 'Esplora come le reti causali identificano i confondenti e distinguono correlazione da causazione attraverso interventi',
+    icon: '🚬',
+    category: 'Reti Causali'
+  },
   // We'll add more apps later
 ];
 
